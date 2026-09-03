@@ -1,6 +1,6 @@
-# Unit Tests for Boat Engine Controller
+# Unit Tests for boat.engine-ecu
 
-This directory contains comprehensive unit tests for the boat engine controller project.
+This directory contains comprehensive unit tests for the boat.engine-ecu project.
 
 ## Test Structure
 

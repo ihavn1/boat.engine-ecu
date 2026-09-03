@@ -1,10 +1,10 @@
 {
-    "name": "boat.engine-controller",
+    "name": "boat.engine-ecu",
     "keywords": "SensESP, Signal K, marine, boat, sensor, hardware, embedded, device, engine, temperature, RPM",
-    "description": "Boat engine controller with temperature and RPM monitoring for the SensESP sensor framework",
+    "description": "Boat engine ECU with temperature and RPM monitoring for the SensESP sensor framework",
     "repository": {
         "type": "git",
-        "url": "https://github.com/ihavn1/boat.engine-controller.git"
+        "url": "https://github.com/ihavn1/boat.engine-ecu.git"
     },
     "authors": [
         {

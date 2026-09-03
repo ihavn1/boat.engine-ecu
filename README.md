@@ -1,4 +1,4 @@
-# Boat Engine Controller
+# boat.engine-ecu
 
 A comprehensive engine monitoring solution for marine vessels using ESP32 and the SensESP framework. This project monitors critical engine parameters including coolant temperature, seawater temperatures (intake/output), and engine RPM, transmitting data wirelessly to a Signal K server.
 
@@ -46,15 +46,15 @@ For detailed wiring information, see the [OneWire Temperature Example](examples/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/ihavn1/boat.engine-controller.git
-cd boat.engine-controller
+git clone https://github.com/ihavn1/boat.engine-ecu.git
+cd boat.engine-ecu
 ```
 
 ### 2. Open in PlatformIO
 
 - Open Visual Studio Code
 - Install the PlatformIO IDE extension if not already installed
-- Open the project folder: `File -> Open Folder` and select the `boat.engine-controller` directory
+- Open the project folder: `File -> Open Folder` and select the `boat.engine-ecu` directory
 
 ### 3. Configure Your Hardware
 
@@ -151,7 +151,7 @@ For more Signal K paths, visit the [Signal K specification](https://signalk.org/
 ## Project Structure
 
 ```
-boat.engine-controller/
+boat.engine-ecu/
 ├── src/
 │   ├── Main.cpp              # Main application code
 │   ├── onewire_helper.cpp    # OneWire sensor helper functions
@@ -264,7 +264,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## Support
 
-- **Issues**: Report bugs or request features via [GitHub Issues](https://github.com/ihavn1/boat.engine-controller/issues)
+- **Issues**: Report bugs or request features via [GitHub Issues](https://github.com/ihavn1/boat.engine-ecu/issues)
 - **Documentation**: See the [examples](examples/) directory for detailed guides
 - **Signal K**: Visit [Signal K documentation](https://signalk.org/) for more information
 
