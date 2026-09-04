@@ -42,7 +42,7 @@ void ShutdownCoordinator::sample(bool shutdownActive) {
         return;
     }
 
-    if (!store_.save(counter_.centihours())) {
+    if (!store_.save(counter_.elapsedMilliseconds())) {
         return;
     }
 

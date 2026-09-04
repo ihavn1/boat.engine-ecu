@@ -17,14 +17,14 @@ public:
     explicit EngineHoursCounter(const IClock& clock);
 
     bool setCentihours(uint64_t centihours);
+    void setElapsedMilliseconds(uint64_t milliseconds);
     void updateRpm(float rpmHz);
+    uint64_t elapsedMilliseconds() const;
     uint64_t centihours() const;
     uint64_t signalKRuntimeSeconds() const;
     bool isRunning() const;
 
 private:
-    uint64_t elapsedMilliseconds() const;
-
     const IClock& clock_;
     uint64_t accumulated_ms_;
     uint64_t running_since_ms_;

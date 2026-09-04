@@ -47,11 +47,13 @@ public:
     }
 
     bool load() override {
-        uint64_t stored_centihours = 0;
-        if (!readStoredValue(stored_centihours)) {
+        uint64_t stored_milliseconds = 0;
+        bool migrated_legacy_value = false;
+        if (!readStoredValue(stored_milliseconds, migrated_legacy_value)) {
             return false;
         }
-        return counter_.setCentihours(stored_centihours);
+        counter_.setElapsedMilliseconds(stored_milliseconds);
+        return !migrated_legacy_value || writeAndVerify(stored_milliseconds);
     }
 
     bool refresh() override {
@@ -59,11 +61,11 @@ public:
     }
 
     bool save() override {
-        return writeAndVerify(counter_.centihours());
+        return writeAndVerify(counter_.elapsedMilliseconds());
     }
 
-    bool save(uint64_t centihours) override {
-        return writeAndVerify(centihours);
+    bool save(uint64_t milliseconds) override {
+        return writeAndVerify(milliseconds);
     }
 
     bool to_json(JsonObject& root) override {
@@ -80,35 +82,46 @@ public:
 
 private:
     static constexpr const char* NVS_NAMESPACE = "engine-hours";
-    static constexpr const char* NVS_KEY = "centihours";
+    static constexpr const char* NVS_KEY = "runtime_ms";
+    static constexpr const char* LEGACY_NVS_KEY = "centihours";
 
-    bool readStoredValue(uint64_t& centihours) {
+    bool readStoredValue(uint64_t& milliseconds, bool& migratedLegacyValue) {
         Preferences preferences;
         if (!preferences.begin(NVS_NAMESPACE, true)) {
             return false;
         }
-        const bool exists = preferences.isKey(NVS_KEY);
+
+        bool exists = preferences.isKey(NVS_KEY);
         if (exists) {
-            centihours = preferences.getULong64(NVS_KEY, 0);
+            milliseconds = preferences.getULong64(NVS_KEY, 0);
+        } else if (preferences.isKey(LEGACY_NVS_KEY)) {
+            const uint64_t centihours =
+                preferences.getULong64(LEGACY_NVS_KEY, 0);
+            milliseconds = centihours *
+                EngineHoursCounter::MILLISECONDS_PER_CENTIHOUR;
+            migratedLegacyValue = true;
+            exists = true;
         }
         preferences.end();
         return exists;
     }
 
-    bool writeAndVerify(uint64_t centihours) {
+    bool writeAndVerify(uint64_t milliseconds) {
         Preferences preferences;
         if (!preferences.begin(NVS_NAMESPACE, false)) {
             return false;
         }
-        const size_t bytes_written = preferences.putULong64(NVS_KEY, centihours);
+        const size_t bytes_written =
+            preferences.putULong64(NVS_KEY, milliseconds);
         preferences.end();
-        if (bytes_written != sizeof(centihours)) {
+        if (bytes_written != sizeof(milliseconds)) {
             return false;
         }
 
-        uint64_t stored_centihours = 0;
-        return readStoredValue(stored_centihours) &&
-            stored_centihours == centihours;
+        uint64_t stored_milliseconds = 0;
+        bool migrated_legacy_value = false;
+        return readStoredValue(stored_milliseconds, migrated_legacy_value) &&
+            !migrated_legacy_value && stored_milliseconds == milliseconds;
     }
 
     EngineHoursCounter& counter_;

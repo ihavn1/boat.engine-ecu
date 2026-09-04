@@ -159,10 +159,11 @@ If using multiple temperature sensors:
 
 ### Engine Hours
 
-The current total can be initialized from the **Engine Hours** card in the
-SensESP configuration web interface. The persistent value uses units of 0.01 h.
-During operation, time accumulates whenever the measured RPM frequency is a
-finite value greater than zero.
+The current total can be initialized in 0.01 h units from the **Engine Hours**
+card in the SensESP configuration web interface. Internally and in NVS, elapsed
+time is retained in milliseconds so repeated shutdowns do not discard partial
+hundredths of an hour. During operation, time accumulates whenever the measured
+RPM frequency is a finite value greater than zero.
 
 Signal K receives `propulsion.main.runTime` in seconds, as required by the
 Signal K specification. The published value changes in 0.1 h increments, so it
@@ -173,7 +174,7 @@ GPIO uses `INPUT`, not `INPUT_PULLUP`, because the voltage divider already
 defines both logic levels. The task then performs this sequence:
 
 1. Stop Wi-Fi to reduce current draw. Bluetooth is not enabled by this firmware.
-2. Snapshot the current engine time to 0.01 h.
+2. Snapshot the current engine time in milliseconds.
 3. Write the value to ESP32 NVS.
 4. Read the value back and compare it with the snapshot.
 5. Enter deep sleep only after successful verification.

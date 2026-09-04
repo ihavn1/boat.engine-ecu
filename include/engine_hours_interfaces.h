@@ -13,7 +13,7 @@ public:
 class IEngineHoursStore {
 public:
     virtual ~IEngineHoursStore() = default;
-    virtual bool save(uint64_t centihours) = 0;
+    virtual bool save(uint64_t milliseconds) = 0;
 };
 
 class ISleepController {

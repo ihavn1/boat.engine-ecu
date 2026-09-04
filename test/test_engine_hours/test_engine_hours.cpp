@@ -26,15 +26,15 @@ public:
 
 class FakeStore : public IEngineHoursStore {
 public:
-    bool save(uint64_t centihours) override {
+    bool save(uint64_t milliseconds) override {
         save_count++;
-        saved_centihours = centihours;
+        saved_milliseconds = milliseconds;
         return should_succeed;
     }
 
     bool should_succeed = true;
     unsigned int save_count = 0;
-    uint64_t saved_centihours = 0;
+    uint64_t saved_milliseconds = 0;
 };
 
 class FakeSleepController : public ISleepController {
@@ -104,6 +104,34 @@ void test_setting_value_while_running_restarts_elapsed_interval() {
     TEST_ASSERT_EQUAL_UINT64(10, counter.centihours());
     clock.now_ms = 56000;
     TEST_ASSERT_EQUAL_UINT64(11, counter.centihours());
+}
+
+void test_elapsed_milliseconds_restore_preserves_partial_centihour() {
+    FakeClock clock;
+    EngineHoursCounter counter(clock);
+
+    counter.setElapsedMilliseconds(EngineHoursCounter::MILLISECONDS_PER_CENTIHOUR + 12345);
+    TEST_ASSERT_EQUAL_UINT64(
+        EngineHoursCounter::MILLISECONDS_PER_CENTIHOUR + 12345,
+        counter.elapsedMilliseconds());
+    TEST_ASSERT_EQUAL_UINT64(1, counter.centihours());
+
+    counter.updateRpm(1.0f);
+    clock.now_ms = EngineHoursCounter::MILLISECONDS_PER_CENTIHOUR - 12345;
+    TEST_ASSERT_EQUAL_UINT64(2, counter.centihours());
+}
+
+void test_elapsed_milliseconds_restore_while_running_restarts_interval() {
+    FakeClock clock;
+    EngineHoursCounter counter(clock);
+
+    counter.updateRpm(1.0f);
+    clock.now_ms = 20000;
+    counter.setElapsedMilliseconds(12345);
+    clock.now_ms = 30000;
+
+    TEST_ASSERT_TRUE(counter.isRunning());
+    TEST_ASSERT_EQUAL_UINT64(22345, counter.elapsedMilliseconds());
 }
 
 void test_signalk_runtime_is_quantized_to_tenths() {
@@ -177,8 +205,23 @@ void test_shutdown_retries_failed_save() {
     store.should_succeed = true;
     shutdown.sample(true);
     TEST_ASSERT_EQUAL_UINT32(2, store.save_count);
-    TEST_ASSERT_EQUAL_UINT64(42, store.saved_centihours);
+    TEST_ASSERT_EQUAL_UINT64(
+        42 * EngineHoursCounter::MILLISECONDS_PER_CENTIHOUR,
+        store.saved_milliseconds);
     TEST_ASSERT_EQUAL_UINT32(1, sleeper.sleep_count);
+}
+
+void test_shutdown_preserves_partial_centihour() {
+    FakeClock clock;
+    EngineHoursCounter counter(clock);
+    FakeStore store;
+    FakeSleepController sleeper;
+    ShutdownCoordinator shutdown(clock, counter, store, sleeper, 0);
+
+    counter.setElapsedMilliseconds(12345);
+    shutdown.sample(true);
+
+    TEST_ASSERT_EQUAL_UINT64(12345, store.saved_milliseconds);
 }
 
 void test_shutdown_handles_clock_regression_during_debounce() {
@@ -217,10 +260,13 @@ int main(int, char**) {
     RUN_TEST(test_engine_hours_configuration);
     RUN_TEST(test_counter_tracks_running_time_across_cycles);
     RUN_TEST(test_setting_value_while_running_restarts_elapsed_interval);
+    RUN_TEST(test_elapsed_milliseconds_restore_preserves_partial_centihour);
+    RUN_TEST(test_elapsed_milliseconds_restore_while_running_restarts_interval);
     RUN_TEST(test_signalk_runtime_is_quantized_to_tenths);
     RUN_TEST(test_clock_regression_does_not_add_time);
     RUN_TEST(test_shutdown_requires_stable_active_signal);
     RUN_TEST(test_shutdown_retries_failed_save);
+    RUN_TEST(test_shutdown_preserves_partial_centihour);
     RUN_TEST(test_shutdown_handles_clock_regression_during_debounce);
     RUN_TEST(test_shutdown_without_debounce_saves_immediately);
     return UNITY_END();

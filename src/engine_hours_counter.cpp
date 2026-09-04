@@ -23,6 +23,13 @@ bool EngineHoursCounter::setCentihours(uint64_t centihours) {
     return true;
 }
 
+void EngineHoursCounter::setElapsedMilliseconds(uint64_t milliseconds) {
+    accumulated_ms_ = milliseconds;
+    if (running_) {
+        running_since_ms_ = clock_.nowMs();
+    }
+}
+
 void EngineHoursCounter::updateRpm(float rpmHz) {
     const bool should_run = std::isfinite(rpmHz) && rpmHz > 0.0f;
     const uint64_t now_ms = clock_.nowMs();
