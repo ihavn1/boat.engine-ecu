@@ -229,8 +229,11 @@ boat.engine-ecu/
 
 This project uses the following libraries (automatically managed by PlatformIO):
 
-- **SensESP** (^3.1.1) - Universal Signal K sensor framework
-- **OneWire** (^3.0.1) - OneWire protocol implementation
+- **SensESP** (3.5.0) - Universal Signal K sensor framework
+- **SensESP OneWire** (3.0.2) - OneWire sensor integration
+
+Runtime dependency versions are pinned exactly in `platformio.ini` so every
+firmware environment resolves the same tested versions.
 - **ESP32 Arduino Core** (^6.9.0) - ESP32 Arduino framework
 
 ## Monitoring and Debugging

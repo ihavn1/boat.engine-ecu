@@ -15,14 +15,14 @@
     ],
     "dependencies": [
         {
-            "name": "OneWireNg",
-            "owner": "pstolarz",
-            "version": "^0.13.2"
+            "name": "OneWire",
+            "owner": "SensESP",
+            "version": "3.0.2"
         },
         {
             "name": "SensESP",
             "owner": "SignalK",
-            "version": "^3.1.0"
+            "version": "3.5.0"
         }
     ],
     "version": "3.0.2",
