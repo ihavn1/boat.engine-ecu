@@ -60,13 +60,6 @@ void test_engine_hours_configuration() {
                           BoatSensorConfig::ENGINE_SHUTDOWN_PIN);
     TEST_ASSERT_NOT_EQUAL(BoatSensorConfig::ONEWIRE_PIN,
                           BoatSensorConfig::ENGINE_SHUTDOWN_PIN);
-    TEST_ASSERT_EQUAL_UINT8(2, BoatSensorConfig::STATUS_LED_PIN);
-    TEST_ASSERT_NOT_EQUAL(BoatSensorConfig::STATUS_LED_PIN,
-                          BoatSensorConfig::RPM_PIN);
-    TEST_ASSERT_NOT_EQUAL(BoatSensorConfig::STATUS_LED_PIN,
-                          BoatSensorConfig::ONEWIRE_PIN);
-    TEST_ASSERT_NOT_EQUAL(BoatSensorConfig::STATUS_LED_PIN,
-                          BoatSensorConfig::ENGINE_SHUTDOWN_PIN);
     TEST_ASSERT_EQUAL_UINT32(0, BoatSensorConfig::ENGINE_SHUTDOWN_DEBOUNCE_MS);
     TEST_ASSERT_EQUAL_STRING("/engineHours",
                              BoatSensorConfig::ENGINE_HOURS_CONFIG_PATH);

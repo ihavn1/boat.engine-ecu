@@ -17,7 +17,6 @@ public:
     static constexpr uint8_t ONEWIRE_PIN = 25;
     static constexpr uint8_t RPM_PIN = 16;
     static constexpr uint8_t ENGINE_SHUTDOWN_PIN = 27;
-    static constexpr uint8_t STATUS_LED_PIN = 2;
     
     // Timing Constants
     static constexpr unsigned int RPM_READ_DELAY_MS = 500;
