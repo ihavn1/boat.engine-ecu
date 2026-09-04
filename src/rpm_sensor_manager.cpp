@@ -1,4 +1,5 @@
 #include "rpm_sensor_manager.h"
+#include "sensesp_base_app.h"
 #include "sensesp/ui/config_item.h"
 
 using namespace sensesp;
@@ -15,6 +16,7 @@ RPMSensorManager::RPMSensorManager(uint8_t pin, unsigned int read_delay_ms, floa
 }
 
 void RPMSensorManager::setupSensor() {
+#ifndef SIMULATE_ENGINE_RPM
     // Create the digital input counter
     counter_ = new DigitalInputCounter(
         pin_, 
@@ -28,6 +30,7 @@ void RPMSensorManager::setupSensor() {
         ->set_title("Engine RPM")
         ->set_description("Revolutions of the Engine")
         ->set_sort_order(BoatSensorConfig::RPM_CONFIG_SORT_ORDER);
+#endif
     
     // Create the frequency transform
     frequency_ = new Frequency(
@@ -46,8 +49,15 @@ void RPMSensorManager::setupSensor() {
         ->set_description("Signal K path for the RPM of engine")
         ->set_sort_order(BoatSensorConfig::RPM_SK_PATH_SORT_ORDER);
     
-    // Connect the pipeline: counter -> frequency -> SK output
+    // Connect the pipeline to the Signal K output.
+#ifdef SIMULATE_ENGINE_RPM
+    event_loop()->onRepeat(read_delay_ms_, [this]() {
+        frequency_->set(SIMULATED_RPM_PULSES_PER_INTERVAL);
+    });
+    frequency_->connect_to(sk_output_);
+#else
     counter_->connect_to(frequency_)->connect_to(sk_output_);
+#endif
 }
 
 } // namespace BoatEngine
