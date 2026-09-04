@@ -21,6 +21,10 @@ void setup() {
 
   // Create the global SensESPApp() object.
   SensESPAppBuilder builder;
+  auto status_led = std::make_shared<SystemStatusLed>(
+      BoatSensorConfig::STATUS_LED_PIN
+  );
+  builder.set_system_status_led(status_led);
   sensesp_app = builder.get_app();
 
   // Initialize Temperature Sensor Manager

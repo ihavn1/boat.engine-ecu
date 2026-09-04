@@ -39,6 +39,7 @@ in `BoatSensorConfig` in `include/sensor_config.h`.
 | ESP32 pin | Direction | Firmware mode | Internal bias | External components | Purpose |
 |---|---|---|---|---|---|
 | GPIO 16 | Input | Rising-edge interrupt counter | Pull-up enabled (`INPUT_PULLUP`) | RPM source must pull the pin low and release or drive it with 3.3 V logic | Engine RPM pulse input |
+| GPIO 2 | Output | PWM status patterns | None | On-board blue LED | SensESP Wi-Fi, Signal K, and delta-transmit status |
 | GPIO 25 | Bidirectional | OneWire bus | No internal pull-up relied upon | 4.7 kΩ pull-up from GPIO 25 to 3.3 V | Shared bus for all DS18B20 temperature sensors |
 | GPIO 27 | Input | Falling-edge interrupt (`INPUT`) | None | Voltage divider connected to the upstream 5 V supply | Early power-fail and safe-shutdown request |
 | 5V/VIN | Power input | Not a GPIO | N/A | Schottky isolation diode and hold-up capacitor | Supplies the ESP32 board during normal operation and shutdown |
