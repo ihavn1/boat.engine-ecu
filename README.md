@@ -32,10 +32,27 @@ A comprehensive engine monitoring solution for marine vessels using ESP32 and th
 - **Shutdown Signal**: Active-low 3.3V logic signal that arrives before the ESP32 supply is removed
 
 ### Connections
-- **OneWire Pin**: GPIO 25 (configurable in code)
-- **RPM Pin**: GPIO 16 (configurable in code)
-- **Shutdown Pin**: GPIO 27, driven by the 5 V monitoring voltage divider
-- **Power**: 5V via USB or external power supply
+
+The firmware uses the following application pins. Pin assignments are defined
+in `BoatSensorConfig` in `include/sensor_config.h`.
+
+| ESP32 pin | Direction | Firmware mode | Internal bias | External components | Purpose |
+|---|---|---|---|---|---|
+| GPIO 16 | Input | Rising-edge interrupt counter | Pull-up enabled (`INPUT_PULLUP`) | RPM source must pull the pin low and release or drive it with 3.3 V logic | Engine RPM pulse input |
+| GPIO 25 | Bidirectional | OneWire bus | No internal pull-up relied upon | 4.7 kΩ pull-up from GPIO 25 to 3.3 V | Shared bus for all DS18B20 temperature sensors |
+| GPIO 27 | Input | Falling-edge interrupt (`INPUT`) | None | Voltage divider connected to the upstream 5 V supply | Early power-fail and safe-shutdown request |
+| 5V/VIN | Power input | Not a GPIO | N/A | Schottky isolation diode and hold-up capacitor | Supplies the ESP32 board during normal operation and shutdown |
+| GND | Power/reference | N/A | N/A | Common ground for sensors, voltage divider, and supply | Electrical reference and return path |
+
+All ESP32 GPIO signals must remain between 0 V and 3.3 V. GPIO 27 must never
+be connected directly to the 5 V supply. Choose the voltage divider so its
+output is safely below 3.3 V at the highest possible upstream supply voltage
+and clearly above the ESP32 HIGH threshold during normal operation.
+
+GPIO 16's internal pull-up is suitable for an open-collector or open-drain RPM
+source. A push-pull source is also acceptable only when its output is 3.3 V
+compatible. If the RPM cable is long or electrically noisy, use appropriate
+external input protection, filtering, and preferably galvanic isolation.
 
 Place the hold-up capacitor after an isolation diode on the ESP32 5 V supply,
 and connect the voltage divider to the upstream 5 V supply. When upstream power

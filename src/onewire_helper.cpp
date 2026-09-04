@@ -2,6 +2,7 @@
 
 #include "onewire_helper.h"
 
+#include "sensesp/signalk/signalk_metadata.h"
 #include "sensesp/signalk/signalk_output.h"
 #include "sensesp/transforms/linear.h"
 #include "sensesp/ui/config_item.h"
@@ -31,7 +32,10 @@ void add_onewire_temp(DallasTemperatureSensors* dts, unsigned int read_delay,
       ->set_description((std::string("Calibration for the ") + human_label).c_str())
       ->set_sort_order(linear_sort);
 
-  auto* sk_output = new SKOutputFloat(signal_k_path, sk_cfg.c_str());
+    auto* sk_output = new SKOutputFloat(
+            signal_k_path,
+            sk_cfg.c_str(),
+            new SKMetadata("K", human_label));
   ConfigItem(sk_output)
       ->set_title((std::string(human_label) + " Signal K Path").c_str())
       ->set_description((std::string("Signal K path for the ") + human_label).c_str())
