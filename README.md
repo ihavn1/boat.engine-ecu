@@ -10,6 +10,8 @@ A comprehensive engine monitoring solution for marine vessels using ESP32 and th
   - Seawater output temperature
   - Configurable warning thresholds
 - **RPM Monitoring**: Track engine revolutions per minute using digital input counter
+- **Engine Hours**: Persist running time while an RPM signal is active
+- **Safe Power-Down**: Save engine hours to NVS and enter deep sleep on an active-low shutdown signal
 - **Signal K Integration**: Seamless integration with Signal K marine data ecosystem
 - **WiFi Connectivity**: Wireless data transmission to your Signal K server
 - **Web Configuration**: Easy setup through web-based configuration portal
@@ -27,11 +29,20 @@ A comprehensive engine monitoring solution for marine vessels using ESP32 and th
   - Operating range: -55°C to +125°C
   - 4.7kΩ pull-up resistor required on data line
 - **RPM Sensor**: Digital sensor with pulse output (e.g., hall effect sensor, optical sensor)
+- **Shutdown Signal**: Active-low 3.3V logic signal that arrives before the ESP32 supply is removed
 
 ### Connections
 - **OneWire Pin**: GPIO 25 (configurable in code)
 - **RPM Pin**: GPIO 16 (configurable in code)
+- **Shutdown Pin**: GPIO 27, driven by the 5 V monitoring voltage divider
 - **Power**: 5V via USB or external power supply
+
+Place the hold-up capacitor after an isolation diode on the ESP32 5 V supply,
+and connect the voltage divider to the upstream 5 V supply. When upstream power
+disappears, the divider generates a falling edge while the capacitor continues
+to power the ESP32. Size the capacitor for the measured NVS write, read-back,
+and deep-sleep entry time with adequate margin. Software cannot complete a flash
+write after supply voltage has collapsed.
 
 ### Circuit Diagram
 For detailed wiring information, see the [OneWire Temperature Example](examples/onewire_temperature/README.md).
@@ -129,6 +140,31 @@ If using multiple temperature sensors:
 3. Identify each sensor by warming it and observing which reading increases
 4. Adjust the OneWire addresses in the configuration to match your physical setup
 
+### Engine Hours
+
+The current total can be initialized from the **Engine Hours** card in the
+SensESP configuration web interface. The persistent value uses units of 0.01 h.
+During operation, time accumulates whenever the measured RPM frequency is a
+finite value greater than zero.
+
+Signal K receives `propulsion.main.runTime` in seconds, as required by the
+Signal K specification. The published value changes in 0.1 h increments, so it
+is always a multiple of 360 seconds.
+
+The GPIO 27 falling edge wakes a pre-created high-priority shutdown task. The
+GPIO uses `INPUT`, not `INPUT_PULLUP`, because the voltage divider already
+defines both logic levels. The task then performs this sequence:
+
+1. Snapshot the current engine time to 0.01 h.
+2. Write the value to ESP32 NVS.
+3. Read the value back and compare it with the snapshot.
+4. Enter deep sleep only after successful verification.
+
+If writing fails, the firmware remains awake and retries while power is
+available. No deep-sleep wake source is configured; the next complete power
+cycle starts the ESP32 normally. An unannounced power loss can lose the running
+time accumulated since the previous successful save.
+
 ## Signal K Paths
 
 The controller reports data to the following Signal K paths:
@@ -138,6 +174,7 @@ The controller reports data to the following Signal K paths:
 - `propulsion.main.seaWaterInTemperature` - Seawater intake temperature (K)
 - `propulsion.main.seaWaterOutTemperature` - Seawater output temperature (K)
 - `propulsion.main.revolutions` - Engine RPM (rev/s)
+- `propulsion.main.runTime` - Total engine running time (s), published in 360 s increments
 
 ### System Data
 - `sensors.sensesp.systemhz` - System update frequency
@@ -226,6 +263,22 @@ Or use the PlatformIO "Monitor" button in VS Code.
 - Check that INPUT_PULLUP is appropriate for your sensor type
 
 ## Development
+
+### Engine Hours Tests
+
+Run the portable domain tests:
+
+```bash
+pio test -e native -f test_engine_hours
+```
+
+Run the coverage build and enforce 100% line and branch coverage for the new
+hardware-independent engine-hours and shutdown logic:
+
+```bash
+pio test -e native-coverage -f test_engine_hours
+python -m gcovr --root . --object-directory .pio/build/native-coverage --filter "src/(engine_hours_counter|shutdown_coordinator)\\.cpp" --txt-metric branch --fail-under-line 100 --fail-under-branch 100
+```
 
 ### Building for Different Boards
 

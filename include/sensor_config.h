@@ -16,16 +16,25 @@ public:
     // Hardware Pin Assignments
     static constexpr uint8_t ONEWIRE_PIN = 25;
     static constexpr uint8_t RPM_PIN = 16;
+    static constexpr uint8_t ENGINE_SHUTDOWN_PIN = 27;
     
     // Timing Constants
     static constexpr unsigned int RPM_READ_DELAY_MS = 500;
     static constexpr unsigned int TEMPERATURE_READ_DELAY_MS = 2000;
+    static constexpr unsigned int ENGINE_SHUTDOWN_DEBOUNCE_MS = 0;
     
     // RPM Configuration
     static constexpr float RPM_MULTIPLIER = 1.0f;
     static const char RPM_CONFIG_PATH_CALIBRATE[];
     static const char RPM_CONFIG_PATH_SKPATH[];
     static const char RPM_SK_PATH[];
+
+    // Engine Hours Configuration
+    static const char ENGINE_HOURS_CONFIG_PATH[];
+    static const char ENGINE_HOURS_SK_PATH[];
+    static constexpr int ENGINE_HOURS_CONFIG_SORT_ORDER = 220;
+    static constexpr int ENGINE_HOURS_SK_SORT_ORDER = 230;
+    static constexpr int ENGINE_SHUTDOWN_SORT_ORDER = 240;
     
     // Temperature Sensor Configuration
     struct TemperatureSensorDef {
