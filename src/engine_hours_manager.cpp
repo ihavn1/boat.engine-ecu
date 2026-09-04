@@ -5,6 +5,7 @@
 #include <Preferences.h>
 #include <esp_sleep.h>
 #include <esp_timer.h>
+#include <esp_wifi.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -184,6 +185,7 @@ private:
                 continue;
             }
 
+            stopRadios();
             do {
                 coordinator_.sample(true);
                 if (!coordinator_.isComplete()) {
@@ -193,6 +195,10 @@ private:
 
             coordinator_.sample(false);
         }
+    }
+
+    static void stopRadios() {
+        esp_wifi_stop();
     }
 
     uint8_t pin_;

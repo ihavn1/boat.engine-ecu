@@ -155,10 +155,11 @@ The GPIO 27 falling edge wakes a pre-created high-priority shutdown task. The
 GPIO uses `INPUT`, not `INPUT_PULLUP`, because the voltage divider already
 defines both logic levels. The task then performs this sequence:
 
-1. Snapshot the current engine time to 0.01 h.
-2. Write the value to ESP32 NVS.
-3. Read the value back and compare it with the snapshot.
-4. Enter deep sleep only after successful verification.
+1. Stop Wi-Fi to reduce current draw. Bluetooth is not enabled by this firmware.
+2. Snapshot the current engine time to 0.01 h.
+3. Write the value to ESP32 NVS.
+4. Read the value back and compare it with the snapshot.
+5. Enter deep sleep only after successful verification.
 
 If writing fails, the firmware remains awake and retries while power is
 available. No deep-sleep wake source is configured; the next complete power
