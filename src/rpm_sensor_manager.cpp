@@ -1,5 +1,6 @@
 #include "rpm_sensor_manager.h"
 #include "sensesp_base_app.h"
+#include "sensesp/signalk/signalk_metadata.h"
 #include "sensesp/ui/config_item.h"
 
 using namespace sensesp;
@@ -41,7 +42,8 @@ void RPMSensorManager::setupSensor() {
     // Create the SignalK output
     sk_output_ = new SKOutputFloat(
         BoatSensorConfig::RPM_SK_PATH,
-        BoatSensorConfig::RPM_CONFIG_PATH_SKPATH
+        BoatSensorConfig::RPM_CONFIG_PATH_SKPATH,
+        new SKMetadata("Hz", "Engine Revolutions")
     );
     
     ConfigItem(sk_output_)
