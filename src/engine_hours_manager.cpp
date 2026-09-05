@@ -36,6 +36,23 @@ public:
     }
 };
 
+// Recursive spinlock so the RPM update path (main loop task) and the
+// shutdown ISR task never observe a partially-updated EngineHoursCounter,
+// even when FreeRTOS schedules them on different cores.
+class SpinLockCriticalSection : public ICriticalSection {
+public:
+    void enter() override {
+        portENTER_CRITICAL(&mux_);
+    }
+
+    void exit() override {
+        portEXIT_CRITICAL(&mux_);
+    }
+
+private:
+    portMUX_TYPE mux_ = portMUX_INITIALIZER_UNLOCKED;
+};
+
 class EngineHoursPersistence : public sensesp::Saveable,
                                public sensesp::Serializable,
                                public IEngineHoursStore {
@@ -223,7 +240,7 @@ class EngineHoursManager::Impl {
 public:
     explicit Impl(sensesp::Frequency* rpmFrequency)
         : rpm_frequency_(rpmFrequency)
-        , counter_(clock_)
+        , counter_(clock_, counter_lock_)
         , persistence_(counter_, BoatSensorConfig::ENGINE_HOURS_CONFIG_PATH)
         , shutdown_(clock_, counter_, persistence_, sleep_controller_,
                     BoatSensorConfig::ENGINE_SHUTDOWN_DEBOUNCE_MS)
@@ -257,6 +274,7 @@ public:
 private:
     sensesp::Frequency* rpm_frequency_;
     EspClock clock_;
+    SpinLockCriticalSection counter_lock_;
     EngineHoursCounter counter_;
     EngineHoursPersistence persistence_;
     EspDeepSleepController sleep_controller_;

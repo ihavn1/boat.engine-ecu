@@ -14,7 +14,10 @@ public:
     static constexpr uint64_t MAX_CENTIHOURS =
         UINT64_MAX / MILLISECONDS_PER_CENTIHOUR;
 
-    explicit EngineHoursCounter(const IClock& clock);
+    explicit EngineHoursCounter(
+        const IClock& clock,
+        ICriticalSection& lock = NullCriticalSection::instance()
+    );
 
     bool setCentihours(uint64_t centihours);
     void setElapsedMilliseconds(uint64_t milliseconds);
@@ -26,6 +29,7 @@ public:
 
 private:
     const IClock& clock_;
+    ICriticalSection& lock_;
     uint64_t accumulated_ms_;
     uint64_t running_since_ms_;
     bool running_;

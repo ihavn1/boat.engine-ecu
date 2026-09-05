@@ -4,15 +4,19 @@
 
 namespace BoatEngine {
 
-EngineHoursCounter::EngineHoursCounter(const IClock& clock)
+EngineHoursCounter::EngineHoursCounter(const IClock& clock, ICriticalSection& lock)
     : clock_(clock)
+    , lock_(lock)
     , accumulated_ms_(0)
     , running_since_ms_(0)
     , running_(false) {
 }
 
 bool EngineHoursCounter::setCentihours(uint64_t centihours) {
+    lock_.enter();
+
     if (centihours > MAX_CENTIHOURS) {
+        lock_.exit();
         return false;
     }
 
@@ -20,17 +24,25 @@ bool EngineHoursCounter::setCentihours(uint64_t centihours) {
     if (running_) {
         running_since_ms_ = clock_.nowMs();
     }
+
+    lock_.exit();
     return true;
 }
 
 void EngineHoursCounter::setElapsedMilliseconds(uint64_t milliseconds) {
+    lock_.enter();
+
     accumulated_ms_ = milliseconds;
     if (running_) {
         running_since_ms_ = clock_.nowMs();
     }
+
+    lock_.exit();
 }
 
 void EngineHoursCounter::updateRpm(float rpmHz) {
+    lock_.enter();
+
     const bool should_run = std::isfinite(rpmHz) && rpmHz > 0.0f;
     const uint64_t now_ms = clock_.nowMs();
 
@@ -43,6 +55,8 @@ void EngineHoursCounter::updateRpm(float rpmHz) {
         }
         running_ = false;
     }
+
+    lock_.exit();
 }
 
 uint64_t EngineHoursCounter::centihours() const {
@@ -55,19 +69,31 @@ uint64_t EngineHoursCounter::signalKRuntimeSeconds() const {
 }
 
 bool EngineHoursCounter::isRunning() const {
-    return running_;
+    lock_.enter();
+    const bool running = running_;
+    lock_.exit();
+    return running;
 }
 
 uint64_t EngineHoursCounter::elapsedMilliseconds() const {
+    lock_.enter();
+
     if (!running_) {
-        return accumulated_ms_;
+        const uint64_t result = accumulated_ms_;
+        lock_.exit();
+        return result;
     }
 
     const uint64_t now_ms = clock_.nowMs();
     if (now_ms < running_since_ms_) {
-        return accumulated_ms_;
+        const uint64_t result = accumulated_ms_;
+        lock_.exit();
+        return result;
     }
-    return accumulated_ms_ + (now_ms - running_since_ms_);
+
+    const uint64_t result = accumulated_ms_ + (now_ms - running_since_ms_);
+    lock_.exit();
+    return result;
 }
 
 } // namespace BoatEngine
